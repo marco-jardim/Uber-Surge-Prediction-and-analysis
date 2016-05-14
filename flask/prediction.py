@@ -144,9 +144,9 @@ def model_lasso_10(zipcode,weather,temperature,weather_hour,temp_hour,situation,
     import numpy as np
     from sklearn import linear_model
     clf = linear_model.Lasso(alpha=0.1)
-    f1= np.loadtxt('matrix_x/'+zipcode+".txt")
-    name = 'matrix_x/'+zipcode+".txt"
-    f2= np.loadtxt('matrix_y/'+zipcode+".txt")
+    f1= np.loadtxt('matrix_x_10/'+zipcode+".txt")
+    name = 'matrix_x_10/'+zipcode+".txt"
+    f2= np.loadtxt('matrix_y_10/'+zipcode+".txt")
     Y=f2.T.tolist()
     X=[]
     new_predict =[]
@@ -175,9 +175,9 @@ def model_lasso_30(zipcode,weather,temperature,weather_hour,temp_hour,situation,
     import numpy as np
     from sklearn import linear_model
     clf = linear_model.Lasso(alpha=0.1)
-    f1= np.loadtxt('matrix_x/'+zipcode+".txt")
-    name = 'matrix_x/'+zipcode+".txt"
-    f2= np.loadtxt('matrix_y/'+zipcode+".txt")
+    f1= np.loadtxt('matrix_x_30/'+zipcode+".txt")
+    name = 'matrix_x_30/'+zipcode+".txt"
+    f2= np.loadtxt('matrix_y_30/'+zipcode+".txt")
     Y=f2.T.tolist()
     X=[]
     new_predict =[]
