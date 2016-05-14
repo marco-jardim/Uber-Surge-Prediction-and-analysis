@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="libs/d3/d3.min.js" charset="utf-8"></script>
+    <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+    <script src="libs/plotly-latest.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
+    <!-- key=AIzaSyCY-Pq0DwihGIyGkkD3RhLHjmdux9z4NxM&signed_in=true&callback=initMap" -->
+    <!-- "https://maps.googleapis.com/maps/api/js?key=AIzaSyCY-Pq0DwihGIyGkkD3RhLHjmdux9z4NxM&signed_in=true&callback=initMap" -->
+    <!-- Stylesheets-->
+    <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"> -->
+    <link rel="stylesheet" type="text/css" href="libs/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/myStyle.css">
+
+    <!-- Get some nice font-->
+    <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
+
+    <!-- External js files -->
+    <script src="js/surgeEstimator.js"></script>
+    <!-- <script src="js/mapvis.js"></script> -->
+    <!-- <script src="js/heatmap.js"></script> -->
+
+    
+    
+
+    <!-- <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+ -->
+    <script>
+    $(function() {
+      $( "#datepicker" ).datepicker();
+    });
+    </script>
+</head>
+
+  <body>
+    <!-- <div id="floating-panel">
+      <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+      <button onclick="changeGradient()">Change gradient</button>
+      <button onclick="changeRadius()">Change radius</button>
+      <button onclick="changeOpacity()">Change opacity</button>
+    </div> -->
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+            </div>
+            <!-- <div class="navbar-header">
+              <img src="img/Uber_Surge.png" alt="uSurge Logo" width=120/>
+            </div> -->
+            <div class="collapse navbar-collapse">
+              
+              <ul class="nav navbar-nav navbar-right">
+                <li class="navList">I plan to ride</li>
+                <li> 
+                    <form id="rideSelect">
+                      <select id="rideType" class="estimatorForm">
+                          <option value="uberX">UberX</option>
+                          <!-- <option value="uberXL">UberXL</option>
+                          <option value="UberBlack">UberBlack</option>
+                          <option value="UberSUV">UberSUV</option>
+                          <option value="uberTAXI">UberTAXI</option>
+                          <option value="uberSELECT">UberSELECT</option> -->
+                        </select>
+                    </form>
+                </li>
+                <li class="navList">on</li>
+                <li>
+                      <form id="dateSelect">
+                            <input type="text" id="datepicker" class="estimatorForm">
+                      </form>
+                </li>
+                <li class="navList">at</li>
+                <li>
+                    <form id="timeSelect">
+                          <input type="time" name="usr_time" id="timepicker" class="estimatorForm">
+                    </form>
+                </li>
+                <li class="navList">
+                    <button id="#submitChanges" onclick=submitChanges_page()>
+                      <p id="submitChangesText"> What's my surge? </p>
+                    </button>
+                </li>
+                <li class="navList">
+                    <button  onclick=recommendation_page()>
+                      <p> Driver Recommendation </p>
+                    </button>
+                </li>
+                <li class="navList">
+                    <button  onclick=changeRadius()>
+                      <p >changeRadius </p>
+                    </button>
+                </li>
+              </ul>
+
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+      </nav>
+    <div class="row row-height"></div>
+    <div class="row row-height2"></div>
+    <div class="row" id="topRow">
+        <div class="col-md-8">
+        <div id="map2"></div>
+        </div>
+        
+
+
+        <script>
+        
+        var map, heatmap;
+
+    function initMap(coordinate_lat,coordinate_lng) {
+        map = new google.maps.Map(document.getElementById('map2'), {
+            zoom: 12,
+            center: {
+                lat: 40.756221,
+                lng: -73.982877
+            },
+            mapTypeId: google.maps.MapTypeId.SATELLITE
+        });
+        // initialize googlemap
+        heatmap = new google.maps.visualization.HeatmapLayer({
+            data: getPoints(coordinate_lat,coordinate_lng),  //coordinate_lat, coordinate_lng
+            map: map
+        });
+    }  // initialize heatmap
+
+    
+
+    
+
+    // Heatmap data
+    function getPoints(coordinate_lat,coordinate_lng) {
+        
+        var rawLat = coordinate_lat ;//40.80630111694336, 40.77403259277344, 40.806026458740234, 40.7996711730957, 40.73762130737305]
+        //console.log(rawLat.length);
+        var rawLng = coordinate_lng ;//-73.95401763916016, -73.90462493896484, -73.96513366699219, -73.9696044921875, -74.00663757324219]
+        // console.log(rawLng.length);  // for test on log
+        var result = [];
+        console.log(rawLat,rawLng);
+        if (rawLat == null){ 
+          result =[new google.maps.LatLng(37.782551, -122.445368)];
+          return result;
+        }
+        for (var i = 0; i < rawLat.length; i++) {
+            result.push(new google.maps.LatLng(rawLat[i], rawLng[i]));
+        }
+
+        return result;    //return heatmap result
+    }
+
+
+        </script>
+
+        <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCY-Pq0DwihGIyGkkD3RhLHjmdux9z4NxM&signed_in=true&libraries=visualization&callback=initMap">
+        </script>
+        <div class="col-md-4">
+            
+            <div class="row">
+                  <div class="col-md-12 sectionTab">
+                      <div class="col-md-1"></div>
+                      <div class="col-md-10">
+                          <h1><b id="selectedlocation">Our recommendation</b></h1>
+                      </div>
+                  </div>
+                  <!-- <div class="col-md-2"></div> -->
+            
+            <div class="row row-height">
+                <div class="col-md-4">
+                          <h3 class="surgeDisplay1" id="blank1"></h3>
+                      </div>
+                      <div class="col-md-4">
+                          <h3 class="surgeDisplay1" id="blank2"></h3>
+                      </div>
+                      <div class="col-md-4">
+                          <h3 class="surgeDisplay1" id="blank3"></h3>
+                      </div>
+            </div>
+            <div class="row" id="toprecomm">
+                <!-- <div class="col-md-3 surgeTitle">
+                  <h2>No Surge</h2>
+                  <h3 class="surgeDisplay" id="noSurge"></h3>
+                </div> -->
+                <div class="col-md-4 surgeTitle">
+                  <h2> Top 1</h2>
+                  <h3 class="surgeDisplay" id="recom1"></h3>
+                </div>
+                <div class="col-md-4 surgeTitle">
+                  <h2>Top 2</h2>
+                  <h3 class="surgeDisplay" id="recom2"></h3>
+                </div>
+                <div class="col-md-4 surgeTitle">
+                  <h2>Top 3</h2>
+                  <h3 class="surgeDisplay" id="recom3"></h3>
+                </div>
+            </div>
+            <div class="row row-height_2">
+              <img src="uber.gif" style="width:400px;height:268px;">
+            </div>
+        </div>
+        </div>
+    </div>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

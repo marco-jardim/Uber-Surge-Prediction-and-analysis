@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Uber Surge Analysis</title>
+
+    <!-- Libraries and Such-->
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="libs/d3/d3.min.js" charset="utf-8"></script>
+    <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+    <script src="libs/plotly-latest.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
+    
+    <!-- key=AIzaSyCY-Pq0DwihGIyGkkD3RhLHjmdux9z4NxM&signed_in=true&callback=initMap" -->
+    <!-- "https://maps.googleapis.com/maps/api/js?key=AIzaSyCY-Pq0DwihGIyGkkD3RhLHjmdux9z4NxM&signed_in=true&callback=initMap" -->
+    <!-- Stylesheets-->
+    <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"> -->
+    <link rel="stylesheet" type="text/css" href="libs/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/myStyle.css">
+
+    <!-- Get some nice font-->
+    <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
+
+    <!-- External js files -->
+    <script src="js/surgeEstimator.js"></script>
+    <script src="js/mapvis.js"></script>
+    <!-- <script src="js/heatmap.js"></script> -->
+
+    
+    
+
+    <!-- <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+ -->
+    <script>
+    $(function() {
+      $( "#datepicker" ).datepicker();
+    });
+    </script>
+</head>
+
+<body>
+      <nav class="navbar navbar-default navbar-fixed-top">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+            </div>
+            <div class="navbar-header">
+              <img src="img/Uber_Surge.png" alt="uSurge Logo" width=120/>
+            </div>
+            <div class="collapse navbar-collapse">
+              
+              <ul class="nav navbar-nav navbar-right">
+                <li class="navList">I plan to ride</li>
+                <li> 
+                    <form id="rideSelect">
+                      <select id="rideType" class="estimatorForm">
+                          <option value="uberX">UberX</option>
+                          <!-- <option value="uberXL">UberXL</option>
+                          <option value="UberBlack">UberBlack</option>
+                          <option value="UberSUV">UberSUV</option>
+                          <option value="uberTAXI">UberTAXI</option>
+                          <option value="uberSELECT">UberSELECT</option> -->
+                        </select>
+                    </form>
+                </li>
+                <li class="navList">on</li>
+                <li>
+                      <form id="dateSelect">
+                            <input type="text" id="datepicker" class="estimatorForm">
+                      </form>
+                </li>
+                <li class="navList">at</li>
+                <li>
+                    <form id="timeSelect">
+                          <input type="time" name="usr_time" id="timepicker" class="estimatorForm">
+                    </form>
+                </li>
+                <li class="navList">
+                    <button id="#submitChanges" onclick=submitChanges()>
+                      <p id="submitChangesText"> What's my surge? </p>
+                    </button>
+                </li>
+                <li class="navList">
+                    <button  onclick=recommendation()>
+                      <p >Driver Recommendation </p>
+                    </button>
+                </li>
+              </ul>
+
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+      </nav>
+
+    <div class="row row-height"></div>
+    <div class="row row-height"></div>
+
+    <div class="row" id="topRow">
+        <div class="col-md-5">
+            
+            <div class="row">
+                  <div class="col-md-12 sectionTab">
+                      <div class="col-md-1"></div>
+                      <div class="col-md-10">
+                          <h1><b id="selectedlocation">Select Location</b></h1>
+                      </div>
+                  </div>
+                  <!-- <div class="col-md-2"></div> -->
+            </div>
+
+            <div class="row">
+                      <!-- <div class="col-md-3">
+                          <h3 class="surgeDisplay1" id="selectedDate"></h3>
+                      </div> -->
+                      <div class="col-md-4">
+                          <h3 class="surgeDisplay1" id="selectedTime"></h3>
+                      </div>
+                      <div class="col-md-4">
+                          <h3 class="surgeDisplay1" id="selectedWeather"></h3>
+                      </div>
+                      <div class="col-md-4">
+                          <h3 class="surgeDisplay1" id="selectedTemp"></h3>
+                      </div>
+            </div>
+
+            <div class="row" id="surgeProb">
+                <!-- <div class="col-md-3 surgeTitle">
+                  <h2>No Surge</h2>
+                  <h3 class="surgeDisplay" id="noSurge"></h3>
+                </div> -->
+                <div class="col-md-4 surgeTitle">
+                  <h2> Current </h2>
+                  <h3 class="surgeDisplay" id="Current_surge"></h3>
+                </div>
+                <div class="col-md-4 surgeTitle">
+                  <h2>10 minutes</h2>
+                  <h3 class="surgeDisplay" id="10_minutes"></h3>
+                </div>
+                <div class="col-md-4 surgeTitle">
+                  <h2>30 minutes</h2>
+                  <h3 class="surgeDisplay" id="30_minutes"></h3>
+                </div>
+            </div>
+            <div class="row row-height_2">
+              <img src="uber.gif" style="width:560px;height:268px;">
+            </div>
+        </div>
+
+        <div class="col-md-6" id="mapVis">
+            <div id="map"></div>
+            <script>
+
+          </script>
+          <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCY-Pq0DwihGIyGkkD3RhLHjmdux9z4NxM&signed_in=true&callback=initMap"></script>
+        </div>
+    </div>
+
+
+
+    <div class="row-height"></div>
+
+    <!--div class="row row-border">
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-8">
+            <div class="col-md-8 sectionText">dsds</div>
+            <div class="col-md-4"></div>
+        </div>
+    </div-->
+    <div class="row">
+        <div class="col-md-4">
+          <div class="row-border"></div>
+          <div class="row sectionTab">
+                <h1><b>Surges Explained</b></h1>
+          </div>
+        </div>
+        <div class="col-md-8 sectionText">
+          <div class="col-md-10 col-md-offset-1">
+              <h3><b>No surge:</b> Looks like it's your lucky day!</h3>
+              <h3><b>Mid surge:</b> 1.5x</h3>
+              <h3><b>Low surge:</b> Under 1.5x</h3>
+              <h3><b>High surge:</b> Over 1.5x</h3>
+          </div>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+
+    <div class="row-height"></div>
+    <!-- <div class="row">
+      <div class="col-md-6" id="heatmap">
+            <div id="map2">
+            
+            </div>
+      </div>
+    </div> -->
+    <div class="row">
+        <div class="col-md-4 col-md-push-8">
+          <div class="row-border"></div>
+          <div class="row sectionTab">
+                <h1><b>What we did</b></h1>
+          </div>
+        </div>
+        <div class="col-md-8 col-md-pull-4 sectionText">
+          <div class="col-md-10 col-md-offset-1"><br>
+              <p>First, we collected the real time datasets from API including: Real time Uber Surge multiplier using Uber Official API,Real time weather and temperature using Yahoo Weather API, Real time incident and traffic using Maprequest API, Weather and temperature forcast using Weather Underground API and Historical taxi data from NYC Taxi Dataset. Secondly, we store the data into AWS Dynamo DB. Thirdly, we use Dynamic Leraning Model and Lasso Regression to train the data and make predictions of the surge in 10 minutes and 30 minutes respectively. Fourth, we use Uber's fare calculation algorithm to give recommendations for the drivers and also show the regions which has high surge on google heat map, the darker the color is, the higher the surge will be. Finally, we used exploratory data analysis to glean more insights into the data set. Much of the exploratory data analysis proved our intuition correct. For example, the colder the temperature, the less likely people are to walk and the more likely there will be a surge price on ubers.  </p><br>
+          </div>
+        </div>
+    </div>
+
+    <div class="row-height"></div>
+
+    <div class="row">
+        <div class="col-md-4">
+          <div class="row-border"></div>
+          <div class="row sectionTab">
+                <h1><b>What got us going</b></h1>
+          </div>
+        </div>
+        <div class="col-md-8 sectionText">
+          <div class="col-md-10 col-md-offset-1"><br>
+              <p>We wanted to explore Uber’s concept of surge pricing by conducting an analysis of which factors affect surge pricing the most. This was particularly interesting to us because Uber’s API was just recently made public, so there have not been many predictive/analytical projects looking at surge pricing. This gives us a novel opportunity to explore data that affects our daily lives, and to incorporate several of the statistics and computational methodologies we learned. The data set that we have compiled can also allow us to look at many different variables and their effect on surge pricing. For example, we will look at how temperature, weather, region, traffic situation and the present surge affect the surge charge on an uber. Also, should someone call the Uber now, or if they have time wait 10 minutes or 30 minutes in order to try and find a better price? We all use Uber, and love the service; however, we wanted to create a predictive model in order to find the times that we do not have to be charged extra money!</p><br>
+          </div>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+
+    <div class="row-height"></div>
+
+    <div class="row">
+        <div class="col-md-4 col-md-push-8">
+          <div class="row-border"></div>
+          <div class="row sectionTab">
+                <h1><b>Uber API</b></h1>
+          </div>
+        </div>
+        <div class="col-md-8 col-md-pull-4 sectionText">
+          <div class="col-md-10 col-md-offset-1"><br>
+              <p>The Uber API was made available to the general public earlier this year. While the company's main motivation for opening up the API was to allow technology developers to embed Uber into their apps, it also allowed for users like to amass and analyze ride data. While Uber did not allow us to access past historical data, once we knew we wanted to collect data we were able to use AWS to make calls every 1 minute to the Uber Official API and receive back information as if we were a user requesting a ride at that moment in time. We did this over 2 weeks in 43 different areas in Manhattan (divided according to the zipcode).</p><br>
+          </div>
+        </div>
+    </div>
+
+    <div class="row-height"></div>
+    <div class="row">
+        <div class="col-md-4">
+          <div class="row-border"></div>
+          <div class="row sectionTab">
+                <h1><b>The Data</b></h1>
+          </div>
+        </div>
+        <div class="col-md-8 sectionText">
+          <div class="col-md-10 col-md-offset-1"><br>
+              <p> The dataset we collected over 2 weeks was information pulled from an API call every 1 minute to Uber's <a href="https://developer.uber.com/docs/v1-estimates-price" target="blank">Price Estimates</a> endpoint passing in parameters for the location we wanted to request a ride from, as well as an API call to Yahoo Weather API and WeatherUnderground's API to receive the current and future temperature and weather data. For each call we received the user's input time/date, type of uber, surge, temperature, weather description, traffic situation, latitude and longtitude. We train the data for the 34 different areas respectively.What's more, we also get NYC Taxi Data to analysis the drop off locations given a certain time and pick up location and meantime we draw it on Google Heap Map. Eventually, we want to make recommendations for the uber drivers: List the 3 highest surge locations and highlight the areas which has surge over 1.5. </p><br>
+          </div>
+        </div>
+    </div>
+
+    <div class="row-height"></div>
+    <div class="row">
+        <div class="col-md-4 col-md-push-8">
+          <div class="row-border"></div>
+          <div class="row sectionTab">
+                <h1><b>What we found</b></h1>
+          </div>
+        </div>
+        <div class="col-md-8 col-md-pull-4 sectionText">
+          <div class="col-md-10 col-md-offset-1"><br>
+              <h3>Exploratory Analysis</h3>
+              <p>We found that generally most rides do not have surge, only about 12% of the time will an Uber ride contain a surge charge. Average surge overall was about 1.198x the base price. The graphs we found to be most interesting were the graph on the effect of the district effect on surge, the effect of temperature on surge, the effect of time of day on surge, and the effect of weather type on surge.</p>
+              
+              <h3>City</h3>
+                <iframe src="https://plot.ly/~lilywyt/4/effect-of-district-on-surge/" width="100%" height="500" seamless="seamless" scrolling="no"></iframe>
+                <p> Of all the districts that we looked at Greenwich Village and soho, Lower Manhattan and Lower East Side have highest overall surge and East Harlem has the lowest. Lower Manhattan and soho district having the highest surge intuitively makes sense as we show later in the heatmap that lots of young people working in the IT companies and Financial companies would go directly to lower Manhattan(including Soho area) and Midtown after work(These are popular areas for them to choose as residential locations and after-work entertainment activity locations) and young people prefer to use taxi booking apps like Uber,so the demand for Uber is higher. East Harlem and Central Harlem have less vitality compared with these areas and the average income are lower than the others which limits demand for Uber. </p>
+              <br>
+              <h3>Temperature</h3>
+                <iframe src="https://plot.ly/~lilywyt/5/effect-of-temperature-on-surge/" width="100%" height="500" seamless="seamless" scrolling="no"></iframe>
+                <p> We see that with  cold temperatures there is a higher surge because of higher demand for Uber with not as much supply. We see a similar effect but not as strong for  hot temperatures. </p>
+              <br>
+              <h3>Weather</h3>
+                <iframe src="https://plot.ly/~lilywyt/7/effect-of-weather-on-surge/" width="100%" height="500" seamless="seamless" scrolling="no"></iframe>
+                <p> Weather conditions are clear or Breezy most of the time, but when there is rain or there is a chance of rain, surge pricing goes up, this make sense because  people do not want to travel in adverse weather conditions. </p>
+              <br>
+              <h3>Time of Day</h3>
+                <iframe src="https://plot.ly/~lilywyt/9/effect-of-time-on-surge/" width="100%" height="500" seamless="seamless" scrolling="no"></iframe>
+                <p> Overall, the highest average surge is at 5 and 6 PM, followed by 8 AM. Since these are rush hour times, it makes sense that there would be high demand for Ubers at these times, and not enough supply. The lowest average surge occurs after 11 PM, which also makes sense because there is generally a low demand for transportation at these times of the day. </p>
+              <br>
+              <h3>Model Summary</h3>
+              <p>In order to create a predictive model, we decided to use a Dynamic Learning Model and Lasso Regression Model. Using a Dynamic Learning Model makes sense because the data we fetch is real time, every time we make a request, we put new data into Amazon DynamoDB, since the data is dynamic, we would like to use Dynamic Model to train the data and is more accurate than other models. We use Lasso Regression as well, Lasso is a linear model that estimates sparse coefficients. It is useful in some contexts due to its tendency to prefer solutions with fewer parameter values, effectively reducing the number of variables upon which the given solution is dependent. Finally, we are able to make recommendations using Uber's Fare Calculation Algorithm, which is particularly enlightening on this dataset. Thus we are able to see which area have the large surge.</p>
+              <p>We set 8 parameters for the Lasso Regression Model: Date, Time, Zipcode, Weather, Temperature, surge, Weather in future, and Temperature in future. We used a 5 fold cross validation technique in order to train the hyperparameters of the model.</p>
+              
+          </div>
+        </div>
+    </div>
+
+
+    
+
+    <!--                           
+    <!--                            -->
+    <!--  AFTER ALL HTML IS LOADED  -->
+    <!--                            -->
+    <!--                            -->
+
+    <script>
+      /* Location Finder -- NECESSARY?? */
+      var x = document.getElementById("suggestCityText");
+
+      function getLocation() {
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(showPosition, showError);
+          } else { 
+              x.innerHTML = "Geolocation is not supported by this browser.";
+          }
+      }
+
+      function showPosition(position) {
+          x.innerHTML = "Thanks!"; 
+      }
+
+      function showError(error) {
+          switch(error.code) {
+              case error.PERMISSION_DENIED:
+                  x.innerHTML = "Alrighty then!"
+                  break;
+              case error.POSITION_UNAVAILABLE:
+                  x.innerHTML = "Thanks!"
+                  break;
+              case error.TIMEOUT:
+                  x.innerHTML = "Thanks!"
+                  break;
+              case error.UNKNOWN_ERROR:
+                  x.innerHTML = "Thanks!"
+                  break;
+          }
+      }
+
+    </script> -->
+
+</body>
+<footer>
+</footer>
+</html>
