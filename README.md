@@ -22,13 +22,13 @@ This repository includes codes of our web application, back end program, web fra
  
 ### Flask:
 
-Prediction.py is our Webframework program which can receive requests from frond end program, calculate corresponding results through our machine learning model and then deliver them to Javascript program. Other data file is for model calculation.
+`Prediction.py` is our Webframework program which can receive requests from frond end program, calculate corresponding results through our machine learning model and then deliver them to Javascript program. Other data files are for model calculation.
 
 ### heatmap:
 
-heatmap_final.py is to calculate average distance of passengers who depart from certain areas.
+`heatmap_final.py` is to calculate average distance of passengers who depart from certain areas.
 
 ### web:
 
-index.html is for our prediction webpage and recommendation.html is for our driver recommendation webpage. 
+`index.html` is for our prediction webpage and `recommendation.html` is for our driver recommendation webpage. 
 JS folder includes the Javascript files for google map and prediction and recommendation process.
