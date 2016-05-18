@@ -11,6 +11,10 @@ This repository includes codes of our web application, back end program, web fra
 
 ## Description for files
 
-Fetch data: `surge.py` is the main program to fetch surge multipliers, weather and temperature data, traffic and incident data, and then store them into DynamoDB.
+## Fetch data: `surge.py` is the main program to fetch surge multipliers, weather and temperature data, traffic and incident data, and then store them into DynamoDB.
 
  `database_total.py` is the program which will be called when `surge.py` runs. It includes the code to connect to my database and create new table, delete table, insert item to specified table.
+ 
+ Other files are for independent functions and their database program.
+ 
+ ### Flask
